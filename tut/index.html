@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simbela Tutoring Services</title>
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --secondary: #166088;
+            --light: #f5f5f5;
+            --dark: #333;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            margin: 0;
+            padding: 0;
+            background-color: var(--light);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo h1 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        nav ul li {
+            margin-left: 1.5rem;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+        
+        nav ul li a:hover {
+            opacity: 0.8;
+        }
+        
+        .section {
+            padding: 2rem 0;
+        }
+        
+        .page-section {
+            display: none;
+        }
+        
+        .page-section.active {
+            display: block;
+        }
+        
+        .hero {
+            background-color: var(--secondary);
+            color: white;
+            text-align: center;
+            padding: 3rem 0;
+        }
+        
+        .hero h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 2rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            background-color: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+        }
+        
+        .btn:hover {
+            background-color: #3a5a84;
+        }
+        
+        .btn-light {
+            background-color: white;
+            color: var(--primary);
+        }
+        
+        .btn-light:hover {
+            background-color: #eaeaea;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .subjects {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .subject-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            transition: transform 0.3s;
+        }
+        
+        .subject-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .subject-card h3 {
+            color: var(--primary);
+            margin-top: 0;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        textarea.form-control {
+            min-height: 150px;
+            resize: vertical;
+        }
+        
+        .error {
+            color: var(--danger);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+        
+        footer {
+            background-color: var(--dark);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+        }
+        
+        #login-section, #dashboard-section {
+            display: none;
+        }
+        
+        #login-section.active, #dashboard-section.active {
+            display: block;
+        }
+        
+        .testimonials {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .testimonial {
+            background-color: white;
+            border-left: 4px solid var(--primary);
+            padding: 1.5rem;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .testimonial-author {
+            font-weight: 600;
+            color: var(--primary);
+            margin-top: 1rem;
+            display: block;
+        }
+        
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .pricing-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .pricing-card h3 {
+            color: var(--primary);
+            font-size: 1.8rem;
+            margin-top: 0;
+        }
+        
+        .price {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin: 1.5rem 0;
+        }
+        
+        .price span {
+            font-size: 1rem;
+            font-weight: normal;
+        }
+        
+        .features {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 2rem;
+            text-align: left;
+        }
+        
+        .features li {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .features li:before {
+            content: "✓";
+            color: var(--success);
+            margin-right: 0.5rem;
+            font-weight: bold;
+        }
+        
+        #magic-link-form {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .calendar {
+            margin-top: 2rem;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+        }
+        
+        .calendar-header {
+            background-color: var(--primary);
+            color: white;
+            text-align: center;
+            padding: 0.5rem;
+        }
+        
+        .calendar-day {
+            background-color: white;
+            border: 1px solid #ddd;
+            height: 80px;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .calendar-day:hover {
+            background-color: #f0f7ff;
+            border-color: var(--primary);
+        }
+        
+        .calendar-day.available {
+            background-color: #e6f7eb;
+        }
+        
+        .calendar-day.booked {
+            background-color: #ffebee;
+            cursor: not-allowed;
+        }
+        
+        .date-number {
+            font-weight: bold;
+        }
+        
+        .session-time {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            color: var(--primary);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            header .container {
+                flex-direction: column;
+            }
+            
+            nav ul {
+                margin-top: 1rem;
+            }
+            
+            nav ul li {
+                margin: 0 0.5rem;
+            }
+            
+            .subjects, .testimonials, .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="logo">
+                <h1>Simbela Tutoring Services</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#" data-section="home">Home</a></li>
+                    <li><a href="#" data-section="services">Services</a></li>
+                    <li><a href="#" data-section="pricing">Pricing</a></li>
+                    <li><a href="#" data-section="contact">Contact</a></li>
+                    <li id="login-nav"><a href="#" data-section="login">Login</a></li>
+                    <li id="dashboard-nav" style="display: none;"><a href="#" data-section="dashboard">Dashboard</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Login Section -->
+    <section id="login-section" class="section page-section">
+        <div class="container">
+            <div class="card">
+                <h2>Login to Your Account</h2>
+                <p>Enter your email address to receive a magic link for logging in.</p>
+                
+                <form id="magic-link-form">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" class="form-control" required>
+                        <div class="error" id="email-error"></div>
+                    </div>
+                    
+                    <button type="submit" class="btn">Send Magic Link</button>
+                </form>
+                
+                <div class="success-message" id="login-success">
+                    Magic link has been sent to your email! Check your inbox and click the link to log in.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Section (Only visible after login) -->
+    <section id="dashboard-section" class="section page-section">
+        <div class="container">
+            <div class="card">
+                <h2>Welcome to Your Dashboard</h2>
+                <p>Hello <span id="user-name">Student</span>! Here you can manage your tutoring sessions, access resources, and get help.</p>
+                
+                <div class="card">
+                    <h3>Your Upcoming Sessions</h3>
+                    <div id="upcoming-sessions">
+                        <p>You have no upcoming sessions scheduled.</p>
+                    </div>
+                    <button class="btn" id="book-session-btn">Book a New Session</button>
+                </div>
+                
+                <div class="card">
+                    <h3>Your Learning Resources</h3>
+                    <ul>
+                        <li><a href="#">Math Practice Problems</a></li>
+                        <li><a href="#">Science Study Guide</a></li>
+                        <li><a href="#">English Grammar Review</a></li>
+                        <li><a href="#">History Timeline Reference</a></li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h3>Need Help?</h3>
+                    <p>Ask your tutor a question or request assistance with a specific topic.</p>
+                    <form id="help-form">
+                        <div class="form-group">
+                            <label for="help-subject">Subject</label>
+                            <select id="help-subject" class="form-control" required>
+                                <option value="">Select a subject</option>
+                                <option value="math">Mathematics</option>
+                                <option value="science">Science</option>
+                                <option value="english">English</option>
+                                <option value="history">History</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="help-message">Your Question</label>
+                            <textarea id="help-message" class="form-control" required></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn">Submit Question</button>
+                    </form>
+                    
+                    <div class="success-message" id="help-success">
+                        Your question has been submitted! Your tutor will respond shortly.
+                    </div>
+                </div>
+                
+                <button class="btn" id="logout-btn" style="margin-top: 1rem;">Logout</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Home Section -->
+    <section id="home-section" class="section page-section active">
+        <div class="hero">
+            <div class="container">
+                <h2>Expert Tutoring for Academic Success</h2>
+                <p>Personalized one-on-one tutoring to help you achieve your academic goals and build confidence in your studies.</p>
+                <a href="#" class="btn btn-light" data-section="services">Explore Our Services</a>
+            </div>
+        </div>
+        
+        <div class="container section">
+            <h2>Why Choose Our Tutoring Services?</h2>
+            <div class="subjects">
+                <div class="subject-card">
+                    <h3>Personalized Approach</h3>
+                    <p>We tailor our teaching methods to match your learning style and academic needs, ensuring effective and efficient progress.</p>
+                </div>
+                <div class="subject-card">
+                    <h3>Experienced Tutors</h3>
+                    <p>Our tutors are subject matter experts with years of teaching experience and a passion for helping students succeed.</p>
+                </div>
+                <div class="subject-card">
+                    <h3>Flexible Scheduling</h3>
+                    <p>Book sessions at times that work for you, with options for both regular weekly sessions and on-demand help.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="container section">
+            <h2>What Our Students Say</h2>
+            <div class="testimonials">
+                <div class="testimonial">
+                    <p>"My grades improved dramatically after just a few sessions. The personalized attention made all the difference in my understanding of calculus."</p>
+                    <span class="testimonial-author">- Sarah K., College Student</span>
+                </div>
+                <div class="testimonial">
+                    <p>"The tutoring platform is so easy to use, and my tutor is always prepared with exactly what I need to work on. It's been a game-changer for my studies."</p>
+                    <span class="testimonial-author">- James T., High School Student</span>
+                </div>
+                <div class="testimonial">
+                    <p>"As a parent, I appreciate the detailed progress reports and the positive impact tutoring has had on my child's confidence in the classroom."</p>
+                    <span class="testimonial-author">- Lisa M., Parent</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services-section" class="section page-section">
+        <div class="container">
+            <h2>Our Tutoring Services</h2>
+            <p>We offer comprehensive tutoring across a wide range of subjects and academic levels.</p>
+            
+            <div class="subjects">
+                <div class="subject-card">
+                    <h3>Mathematics</h3>
+                    <p>From basic arithmetic to advanced calculus, our math tutors can help with:</p>
+                    <ul>
+                        <li>Algebra & Geometry</li>
+                        <li>Trigonometry</li>
+                        <li>Calculus & Statistics</li>
+                        <li>Standardized Test Prep</li>
+                    </ul>
+                </div>
+                <div class="subject-card">
+                    <h3>Science</h3>
+                    <p>Comprehensive science tutoring in:</p>
+                    <ul>
+                        <li>Biology & Chemistry</li>
+                        <li>Physics</li>
+                        <li>Earth Science</li>
+                        <li>Lab Report Assistance</li>
+                    </ul>
+                </div>
+                <div class="subject-card">
+                    <h3>English & Language Arts</h3>
+                    <p>Develop your language and writing skills with help in:</p>
+                    <ul>
+                        <li>Reading Comprehension</li>
+                        <li>Essay Writing</li>
+                        <li>Grammar & Vocabulary</li>
+                        <li>Literature Analysis</li>
+                    </ul>
+                </div>
+                <div class="subject-card">
+                    <h3>History & Social Studies</h3>
+                    <p>Expert tutoring in:</p>
+                    <ul>
+                        <li>World History</li>
+                        <li>U.S. History</li>
+                        <li>Government & Economics</li>
+                        <li>Research Paper Support</li>
+                    </ul>
+                </div>
+                <div class="subject-card">
+                    <h3>Standardized Test Prep</h3>
+                    <p>Comprehensive preparation for:</p>
+                    <ul>
+                        <li>SAT & ACT</li>
+                        <li>AP Exams</li>
+                        <li>GRE & GMAT</li>
+                        <li>Subject-Specific Tests</li>
+                    </ul>
+                </div>
+                <div class="subject-card">
+                    <h3>Study Skills & Academic Coaching</h3>
+                    <p>Build essential academic skills:</p>
+                    <ul>
+                        <li>Time Management</li>
+                        <li>Note-taking Strategies</li>
+                        <li>Test Preparation</li>
+                        <li>Organization Skills</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card" style="margin-top: 2rem;">
+                <h3>How Our Tutoring Works</h3>
+                <ol>
+                    <li><strong>Initial Assessment:</strong> We evaluate your current knowledge, learning style, and academic goals.</li>
+                    <li><strong>Customized Plan:</strong> We create a personalized tutoring plan tailored to your specific needs.</li>
+                    <li><strong>Regular Sessions:</strong> Meet with your tutor at scheduled times for focused learning and practice.</li>
+                    <li><strong>Progress Tracking:</strong> Regular progress assessments ensure you're on track to meet your goals.</li>
+                    <li><strong>Ongoing Support:</strong> Access resources and get answers to questions between sessions.</li>
+                </ol>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing-section" class="section page-section">
+        <div class="container">
+            <h2>Tutoring Packages & Pricing</h2>
+            <p>Choose the tutoring package that best fits your academic needs and goals.</p>
+            
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Basic</h3>
+                    <div class="price">R40.00 <span>/ hour</span></div>
+                    <ul class="features">
+                        <li>One-on-one tutoring sessions</li>
+                        <li>Subject-specific help</li>
+                        <li>Homework assistance</li>
+                        <li>Basic progress tracking</li>
+                        <li>Pay as you go</li>
+                    </ul>
+                    <a href="#" class="btn" data-section="contact">Get Started</a>
+                </div>
+                
+                <div class="pricing-card">
+                    <h3>Standard</h3>
+                    <div class="price">R35.00 <span>/ hour</span></div>
+                    <ul class="features">
+                        <li>4 sessions per month</li>
+                        <li>Customized learning plan</li>
+                        <li>Digital resources library</li>
+                        <li>Email support between sessions</li>
+                        <li>Monthly progress reports</li>
+                    </ul>
+                    <a href="#" class="btn" data-section="contact">Get Started</a>
+                </div>
+                
+                <div class="pricing-card">
+                    <h3>Premium</h3>
+                    <div class="price">R30.00 <span>/ hour</span></div>
+                    <ul class="features">
+                        <li>8 sessions per month</li>
+                        <li>Comprehensive learning plan</li>
+                        <li>Priority scheduling</li>
+                        <li>24/7 question support</li>
+                        <li>Practice tests & materials</li>
+                        <li>Detailed progress analytics</li>
+                    </ul>
+                    <a href="#" class="btn" data-section="contact">Get Started</a>
+                </div>
+            </div>
+            
+            <div class="card" style="margin-top: 2rem; text-align: center;">
+                <h3>Need a Custom Package?</h3>
+                <p>We can create a personalized tutoring plan that addresses your specific needs and budget.</p>
+                <a href="#" class="btn" data-section="contact">Contact Us</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact-section" class="section page-section">
+        <div class="container">
+            <h2>Contact Us</h2>
+            <p>Have questions or ready to get started? Reach out to us using the form below.</p>
+            
+            <div class="card">
+                <form id="contact-form">
+                    <div class="form-group">
+                        <label for="name">Your Name</label>
+                        <input type="text" id="name" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contact-email">Email Address</label>
+                        <input type="email" id="contact-email" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">Phone Number (Optional)</label>
+                        <input type="tel" id="phone" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="subject">Subject of Interest</label>
+                        <select id="subject" class="form-control" required>
+                            <option value="">Select a subject</option>
+                            <option value="math">Mathematics</option>
+                            <option value="science">Science</option>
+                            <option value="english">English</option>
+                            <option value="history">History</option>
+                            <option value="test-prep">Test Prep</option>
+                            <option value="study-skills">Study Skills</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="message">Your Message</label>
+                        <textarea id="message" class="form-control" required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn">Send Message</button>
+                </form>
+                
+                <div class="success-message" id="contact-success">
+                    Thank you for your message! We'll get back to you within 24 hours.
+                </div>
+            </div>
+            
+            <div class="card" style="margin-top: 2rem;">
+                <h3>Our Availability</h3>
+                <p>Check our calendar for available tutoring slots:</p>
+                
+                <div class="calendar">
+                    <div class="calendar-grid">
+                        <div class="calendar-header">Sun</div>
+                        <div class="calendar-header">Mon</div>
+                        <div class="calendar-header">Tue</div>
+                        <div class="calendar-header">Wed</div>
+                        <div class="calendar-header">Thu</div>
+                        <div class="calendar-header">Fri</div>
+                        <div class="calendar-header">Sat</div>
+                        
+                        <!-- Example calendar days -->
+                        <div class="calendar-day">
+                            <div class="date-number">1</div>
+                        </div>
+                        <div class="calendar-day available">
+                            <div class="date-number">2</div>
+                            <div class="session-time">3:00 PM</div>
+                            <div class="session-time">5:00 PM</div>
+                        </div>
+                        <div class="calendar-day available">
+                            <div class="date-number">3</div>
+                            <div class="session-time">4:00 PM</div>
+                        </div>
+                        <div class="calendar-day booked">
+                            <div class="date-number">4</div>
+                            <div class="session-time">Fully Booked</div>
+                        </div>
+                        <div class="calendar-day available">
+                            <div class="date-number">5</div>
+                            <div class="session-time">3:30 PM</div>
+                        </div>
+                        <div class="calendar-day available">
+                            <div class="date-number">6</div>
+                            <div class="session-time">2:00 PM</div>
+                            <div class="session-time">4:00 PM</div>
+                        </div>
+                        <div class="calendar-day">
+                            <div class="date-number">7</div>
+                        </div>
+                        <!-- More days would go here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Simbela Tutoring Services. All rights reserved.</p>
+            <p>Contact: info@yourtutoringservices.com | Phone: (083) 374-1781</p>
+        </div>
+    </footer>
+
+    <script>
+        // Navigation and Section Display
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('nav a');
+            const sections = document.querySelectorAll('.page-section');
+            
+            // Handle navigation clicks
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetSection = this.getAttribute('data-section');
+                    
+                    // Hide all sections
+                    sections.forEach(section => {
+                        section.classList.remove('active');
+                    });
+                    
+                    // Show target section
+                    document.getElementById(`${targetSection}-section`).classList.add('active');
+                });
+            });
+            
+            // Also handle buttons that navigate to sections
+            document.querySelectorAll('.btn[data-section]').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetSection = this.getAttribute('data-section');
+                    
+                    // Hide all sections
+                    sections.forEach(section => {
+                        section.classList.remove('active');
+                    });
+                    
+                    // Show target section
+                    document.getElementById(`${targetSection}-section`).classList.add('active');
+                });
+            });
+            
+            // Handle form submissions
+            const contactForm = document.getElementById('contact-form');
+            if (contactForm) {
+                contactForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    // Here you would normally send the form data to your server
+                    // For demo purposes, we'll just show the success message
+                    document.getElementById('contact-success').style.display = 'block';
+                    contactForm.reset();
+                });
+            }
+            
+            const magicLinkForm = document.getElementById('magic-link-form');
+            if (magicLinkForm) {
+                magicLinkForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const email = document.getElementById('email').value;
+                    
+                    // Validate email
+                    if (!isValidEmail(email)) {
+                        document.getElementById('email-error').textContent = 'Please enter a valid email address.';
+                        return;
+                    }
+                    
+                    // Clear any previous errors
+                    document.getElementById('email-error').textContent = '';
+                    
+                    // Here you would normally send a request to your server to generate and send a magic link
+                    // For demo purposes, we'll simulate a successful login
+                    document.getElementById('login-success').style.display = 'block';
+                    
+                    // Simulate receiving and using a magic link
+                    setTimeout(function() {
+                        simulateLogin(email);
+                    }, 2000);
+                });
+            }
+            
+            const helpForm = document.getElementById('help-form');
+            if (helpForm) {
+                helpForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    // Here you would normally send the help request to your server
+                    // For demo purposes, we'll just show the success message
+                    document.getElementById('help-success').style.display = 'block';
+                    helpForm.reset();
+                });
+            }
+            
+            // Handle logout
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    localStorage.removeItem('loggedIn');
+                    localStorage.removeItem('userEmail');
+                    updateLoginState();
+                });
+            }
+            
+            // Book session button
+            const bookSessionBtn = document.getElementById('book-session-btn');
+            if (bookSessionBtn) {
+                bookSessionBtn.addEventListener('click', function() {
+                    // Redirect to contact form with pre-selected booking option
+                    document.querySelectorAll('.page-section').forEach(section => {
+                        section.classList.remove('active');
+                    });
+                    document.getElementById('contact-section').classList.add('active');
+                    document.getElementById('subject').value = 'book-session';
+                    document.getElementById('message').value = 'I would like to book a tutoring session.';
+                    document.getElementById('message').focus();
+                });
+            }
+            
+            // Helper functions
+            function isValidEmail(email) {
+                const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return regex.test(email);
+            }
+            
+            function simulateLogin(email) {
+                // In a real app, this would verify the magic link token
+                // For demo purposes, we'll just simulate a successful login
+                localStorage.setItem('loggedIn', 'true');
+                localStorage.setItem('userEmail', email);
+                updateLoginState();
+            }
+            
+            function updateLoginState() {
+                const loggedIn = localStorage.getItem('loggedIn') === 'true';
+                const userEmail = localStorage.getItem('userEmail');
+                
+                if (loggedIn && userEmail) {
+                    // Show dashboard, hide login
+                    document.getElementById('login-nav').style.display = 'none';
+                    document.getElementById('dashboard-nav').style.display = 'block';
+                    
+                    // Set user name in dashboard
+                    const userName = userEmail.split('@')[0]; // Simple way to get a name from email
+                    document.getElementById('user-name').textContent = userName;
+                    
+                    // If we're on the login page, redirect to dashboard
+                    if (document.getElementById('login-section').classList.contains('active')) {
+                        document.querySelectorAll('.page-section').forEach(section => {
+                            section.classList.remove('active');
+                        });
+                        document.getElementById('dashboard-section').classList.add('active');
+                    }
+                } else {
+                    // Show login, hide dashboard
+                    document.getElementById('login-nav').style.display = 'block';
+                    document.getElementById('dashboard-nav').style.display = 'none';
+                    
+                    // If we're on the dashboard, redirect to home
+                    if (document.getElementById('dashboard-section').classList.contains('active')) {
+                        document.querySelectorAll('.page-section').forEach(section => {
+                            section.classList.remove('active');
+                        });
+                        document.getElementById('home-section').classList.add('active');
+                    }
+                }
+            }
+            
+            // Check login state on page load
+            updateLoginState();
+            
+            // Handle magic link in URL (for when users click the link in their email)
+            function checkForMagicLink() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const token = urlParams.get('token');
+                const email = urlParams.get('email');
+                
+                if (token && email) {
+                    // In a real app, you would verify this token with your server
+                    // For demo purposes, we'll assume it's valid
+                    simulateLogin(email);
+                    
+                    // Remove the parameters from the URL
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            }
+            
+            checkForMagicLink();
+        });
+    </script>
+</body>
+</html>
