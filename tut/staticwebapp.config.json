@@ -1,0 +1,34 @@
+{
+  "navigationFallback": {
+    "rewrite": "/index.html"
+  },
+  "routes": [
+    {
+      "route": "/admin/*",
+      "allowedRoles": ["admin"] // Only admin users can access this
+    },
+    {
+      "route": "/protected-content/*",
+      "allowedRoles": ["authenticated"] // Any authenticated user can access this
+    },
+    {
+      "route": "/*",
+      "allowedRoles": ["anonymous"] // Publicly accessible pages
+    }
+    // You can add more specific routes here
+  ],
+  "responseOverrides": {
+    "401": {
+      "statusCode": 302,
+      "redirect": "/.auth/login/google" // Redirect to Google login on unauthorized access
+    }
+  },
+  "auth": {
+    "rolesSource": "/api/GetRoles",
+    "identityProviders": {
+      "google": { // Ensure Google is enabled
+        "enabled": true
+      }
+    }
+  }
+}
