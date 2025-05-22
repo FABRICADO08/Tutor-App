@@ -5,7 +5,7 @@ on:
 jobs:
   build_and_deploy_job:
     runs-on: ubuntu-latest
-    name: Build or Close Deployment
+    name: Manual Build and  Deploy
     permissions:
       id-token: write
       contents: read
@@ -26,7 +26,7 @@ jobs:
             return await coredemo.getIDToken()
           result-encoding: string
 
-      - name: Build or Close Deployment
+      - name: Build and Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
