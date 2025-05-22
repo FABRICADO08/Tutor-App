@@ -1,16 +1,7 @@
 name: Azure Static Web Apps CI/CD
 on:
   workflow_dispatch:
-    inputs:
-      deployment_action:
-        description: 'Choose deployment action'
-        required: true
-        default: 'upload'
-        type: choice
-        options:
-          - upload
-          - close
-
+   
 jobs:
   build_and_deploy_job:
     runs-on: ubuntu-latest
