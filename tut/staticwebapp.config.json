@@ -13,7 +13,7 @@
     },
     {
       "route": "/*",
-      "allowedRoles": ["anonymous"] // Publicly accessible pages
+      "allowedRoles": ["student"] // Publicly accessible pages
     }
     // You can add more specific routes here
   ],
