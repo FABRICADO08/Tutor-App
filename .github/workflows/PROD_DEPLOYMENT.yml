@@ -28,9 +28,11 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build Next.js / OpenNext
-        run: pnpm run build
+        run: pnpm opennextjs-cloudflare build
         env:
           NODE_ENV: production
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+          BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
 
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
