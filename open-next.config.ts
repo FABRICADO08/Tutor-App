@@ -1,7 +1,7 @@
-import { defineAppConfig } from "@opennextjs/cloudflare";
+import { defineCloudflareConfig } from "@opennextjs/cloudflare";
 
-export default defineAppConfig({
-  build: {
+export default defineCloudflareConfig({
+  cloudflare: {
     overrideEsbuildConfig: (config) => {
       config.external = [...(config.external || []), "pg-cloudflare"];
       return config;
