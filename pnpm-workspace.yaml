@@ -1,6 +1,10 @@
 packages:
   - '.'
 
+allowBuilds:
+  esbuild: false
+  workerd: false
+
 minimumReleaseAgeExclude:
   - '@next/*'
   - next
