@@ -8,44 +8,53 @@ permissions:
 
 jobs:
   sync:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
 
     steps:
       - name: Checkout Tutor-App
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.SYNC_TOKEN }}
           fetch-depth: 0
+          ref: main
+          persist-credentials: true
 
-      - name: Checkout tutor-app-ho (Source)
+      - name: Checkout tutor-app-ho source
         uses: actions/checkout@v4
         with:
           repository: FABRICADO08/tutor-app-ho
           token: ${{ secrets.SYNC_TOKEN }}
           path: source-repo
           fetch-depth: 0
+          ref: main
+          persist-credentials: false
 
-      - name: Merge Source Code
+      - name: Merge source code
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+          git remote remove source-local 2>/dev/null || true
           git remote add source-local ./source-repo
-          git fetch source-local
+
+          git fetch source-local main
 
           git merge source-local/main \
             --allow-unrelated-histories \
             -X theirs \
             -m "Merge latest code from tutor-app-ho"
 
-      - name: Push changes to Tutor-App
-        run: |
-          # Reconfigure origin to use your SYNC_TOKEN so it has workflow-write privileges
-          git remote set-url origin https://x-access-token:${{ secrets.SYNC_TOKEN }}@github.com/FABRICADO08/Tutor-App.git
-          git push origin main
-
-      - name: Delete source repository tutor-app-ho (Optional)
-        if: success()
+      - name: Verify push authentication
         env:
-          GH_TOKEN: ${{ secrets.SYNC_TOKEN }}
+          SYNC_TOKEN: ${{ secrets.SYNC_TOKEN }}
         run: |
-          gh repo delete FABRICADO08/tutor-app-ho --yes
+          if [ -z "$SYNC_TOKEN" ]; then
+            echo "SYNC_TOKEN is missing or empty."
+            exit 1
+          fi
+
+          echo "SYNC_TOKEN is configured."
+          git remote -v
+
+      - name: Push changes to Tutor-App
+        run: git push origin HEAD:main
