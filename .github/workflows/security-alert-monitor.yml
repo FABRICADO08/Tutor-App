@@ -1,10 +1,8 @@
 name: Security Alert Monitor
-
 on:
   workflow_run:
     workflows:
       - Deploy to Cloudflare Workers (Production)
-      - 
       # Add the exact name of every other workflow here.
       # Do not add "Security Alert Monitor" because that would create a loop.
     types:
