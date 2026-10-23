@@ -5,6 +5,7 @@ on:
 
 permissions:
   contents: write
+  workflows: write
 
 jobs:
   sync:
@@ -29,11 +30,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # Add the local checkout folder as a git remote
           git remote add source-local ./source-repo
           git fetch source-local
 
-          # Merge using -X theirs so tutor-app-ho automatically wins conflicts
           git merge source-local/main \
             --allow-unrelated-histories \
             -X theirs \
@@ -41,6 +40,8 @@ jobs:
 
       - name: Push changes to Tutor-App
         run: |
+          # Reconfigure origin to use your SYNC_TOKEN so it has workflow-write privileges
+          git remote set-url origin https://x-access-token:${{ secrets.SYNC_TOKEN }}@github.com/FABRICADO08/Tutor-App.git
           git push origin main
 
       - name: Delete source repository tutor-app-ho (Optional)
