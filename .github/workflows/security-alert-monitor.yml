@@ -1,0 +1,316 @@
+name: Security Alert Monitor
+
+on:
+  workflow_run:
+    workflows:
+      - Deploy to Cloudflare Workers (Production)
+      - 
+      # Add the exact name of every other workflow here.
+      # Do not add "Security Alert Monitor" because that would create a loop.
+    types:
+      - completed
+
+  # Backup check every hour, even if no other workflow ran.
+  schedule:
+    - cron: "17 * * * *"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-alert-monitor
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    name: Check and remediate security alerts
+    runs-on: ubuntu-26.04
+
+    steps:
+      - name: Wait one hour after another workflow completes
+        if: github.event_name == 'workflow_run'
+        run: |
+          echo "Triggered by completed workflow:"
+          echo "${{ github.event.workflow_run.name }}"
+          echo "Conclusion: ${{ github.event.workflow_run.conclusion }}"
+          echo "Waiting one hour before checking security alerts..."
+          sleep 3600
+
+      - name: Explain scheduled or manual check
+        if: github.event_name != 'workflow_run'
+        run: |
+          echo "This is a scheduled or manually triggered security check."
+          echo "The security alerts will be checked immediately."
+
+      - name: Validate SYNC_TOKEN
+        env:
+          GH_TOKEN: ${{ secrets.SYNC_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::SYNC_TOKEN is missing."
+            exit 1
+          fi
+
+          gh api user \
+            --jq '"Authenticated as: " + .login'
+
+      - name: Check alerts and request automatic fixes
+        id: security
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.SYNC_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const apiVersion = "2026-03-10";
+
+            let openCodeScanning = [];
+            let openDependabot = [];
+
+            let codeScanningAssigned = 0;
+            let dependabotAssigned = 0;
+            let assignmentFailures = 0;
+
+            /*
+             * Check Code Scanning alerts
+             */
+            try {
+              openCodeScanning = await github.paginate(
+                github.rest.codeScanning.listAlertsForRepo,
+                {
+                  owner,
+                  repo,
+                  state: "open",
+                  ref: "refs/heads/main",
+                  per_page: 100
+                }
+              );
+
+              core.info(
+                `Open code-scanning alerts: ${openCodeScanning.length}`
+              );
+            } catch (error) {
+              core.error(
+                `Could not retrieve code-scanning alerts: ${error.message}`
+              );
+              assignmentFailures++;
+            }
+
+            for (const alert of openCodeScanning) {
+              const rule =
+                alert.rule?.description ??
+                alert.rule?.name ??
+                alert.rule?.id ??
+                "Unknown code-scanning rule";
+
+              core.warning(
+                `Code-scanning alert #${alert.number}: ${rule}`
+              );
+
+              const existingAssignees =
+                alert.assignees?.map(assignee => assignee.login) ?? [];
+
+              if (existingAssignees.includes("copilot-swe-agent[bot]")) {
+                core.info(
+                  `Alert #${alert.number} is already assigned to Copilot.`
+                );
+                continue;
+              }
+
+              try {
+                await github.request(
+                  "PATCH /repos/{owner}/{repo}/code-scanning/alerts/{alert_number}",
+                  {
+                    owner,
+                    repo,
+                    alert_number: alert.number,
+                    assignees: ["copilot-swe-agent [bot]"],
+                    headers: {
+                      "X-GitHub-Api-Version": apiVersion
+                    }
+                  }
+                );
+
+                codeScanningAssigned++;
+
+                core.notice(
+                  `Code-scanning alert #${alert.number} was assigned to Copilot Agentic Autofix.`
+                );
+              } catch (error) {
+                assignmentFailures++;
+
+                core.error(
+                  `Could not assign code-scanning alert #${alert.number}: ${error.message}`
+                );
+              }
+            }
+
+            /*
+             * Check Dependabot alerts
+             */
+            try {
+              openDependabot = await github.paginate(
+                "GET /repos/{owner}/{repo}/dependabot/alerts",
+                {
+                  owner,
+                  repo,
+                  state: "open",
+                  per_page: 100,
+                  headers: {
+                    "X-GitHub-Api-Version": apiVersion
+                  }
+                }
+              );
+
+              core.info(
+                `Open Dependabot alerts: ${openDependabot.length}`
+              );
+            } catch (error) {
+              core.error(
+                `Could not retrieve Dependabot alerts: ${error.message}`
+              );
+              assignmentFailures++;
+            }
+
+            for (const alert of openDependabot) {
+              const packageName =
+                alert.dependency?.package?.name ??
+                "Unknown dependency";
+
+              const severity =
+                alert.security_advisory?.severity ??
+                "unknown severity";
+
+              core.warning(
+                `Dependabot alert #${alert.number}: ${packageName}, ${severity}`
+              );
+
+              const existingAssignees =
+                alert.assignees?.map(assignee => assignee.login) ?? [];
+
+              if (existingAssignees.includes("copilot-swe-agent[bot]")) {
+                core.info(
+                  `Dependabot alert #${alert.number} is already assigned to Copilot.`
+                );
+                continue;
+              }
+
+              try {
+                await github.request(
+                  "PATCH /repos/{owner}/{repo}/dependabot/alerts/{alert_number}",
+                  {
+                    owner,
+                    repo,
+                    alert_number: alert.number,
+                    assignees: ["copilot-swe-agent [bot]"],
+                    headers: {
+                      "X-GitHub-Api-Version": apiVersion
+                    }
+                  }
+                );
+
+                dependabotAssigned++;
+
+                core.notice(
+                  `Dependabot alert #${alert.number} was assigned to Copilot.`
+                );
+              } catch (error) {
+                assignmentFailures++;
+
+                core.error(
+                  `Could not assign Dependabot alert #${alert.number}: ${error.message}`
+                );
+              }
+            }
+
+            const totalOpen =
+              openCodeScanning.length + openDependabot.length;
+
+            core.setOutput(
+              "code_scanning_open",
+              String(openCodeScanning.length)
+            );
+
+            core.setOutput(
+              "dependabot_open",
+              String(openDependabot.length)
+            );
+
+            core.setOutput(
+              "code_scanning_assigned",
+              String(codeScanningAssigned)
+            );
+
+            core.setOutput(
+              "dependabot_assigned",
+              String(dependabotAssigned)
+            );
+
+            core.setOutput(
+              "assignment_failures",
+              String(assignmentFailures)
+            );
+
+            core.setOutput(
+              "total_open",
+              String(totalOpen)
+            );
+
+            if (totalOpen === 0) {
+              core.notice(
+                "No open Code Scanning or Dependabot alerts remain."
+              );
+            } else {
+              core.warning(
+                `${totalOpen} security alert(s) remain open.`
+              );
+            }
+
+      - name: Create security summary
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          CODE_SCANNING_OPEN: ${{ steps.security.outputs.code_scanning_open }}
+          DEPENDABOT_OPEN: ${{ steps.security.outputs.dependabot_open }}
+          CODE_SCANNING_ASSIGNED: ${{ steps.security.outputs.code_scanning_assigned }}
+          DEPENDABOT_ASSIGNED: ${{ steps.security.outputs.dependabot_assigned }}
+          ASSIGNMENT_FAILURES: ${{ steps.security.outputs.assignment_failures }}
+          TOTAL_OPEN: ${{ steps.security.outputs.total_open }}
+        run: |
+          {
+            echo "## Security alert check"
+            echo ""
+            echo "- Trigger: ${EVENT_NAME}"
+            echo "- Open code-scanning alerts: ${CODE_SCANNING_OPEN:-0}"
+            echo "- Open Dependabot alerts: ${DEPENDABOT_OPEN:-0}"
+            echo "- Code-scanning alerts assigned to Copilot: ${CODE_SCANNING_ASSIGNED:-0}"
+            echo "- Dependabot alerts assigned to Copilot: ${DEPENDABOT_ASSIGNED:-0}"
+            echo "- Assignment failures: ${ASSIGNMENT_FAILURES:-0}"
+            echo ""
+
+            if [ "${TOTAL_OPEN:-0}" = "0" ]; then
+              echo "### Result"
+              echo "No security alerts remain open."
+              echo ""
+              echo "GitHub has closed alerts that are no longer detected."
+            else
+              echo "### Result"
+              echo "${TOTAL_OPEN} security alert(s) remain open."
+              echo ""
+              echo "Unresolved alerts were sent to Copilot where supported."
+              echo "Review any draft pull requests created by Copilot."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail when automatic remediation could not be requested
+        env:
+          ASSIGNMENT_FAILURES: ${{ steps.security.outputs.assignment_failures }}
+        run: |
+          if [ "${ASSIGNMENT_FAILURES:-0}" -gt 0 ]; then
+            echo "::error::One or more alerts could not be assigned for remediation."
+            echo "Check SYNC_TOKEN permissions and Agentic Autofix settings."
+            exit 1
+          fi
+
+          echo "Security monitoring completed successfully."
