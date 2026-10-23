@@ -25,7 +25,37 @@ function SignIn() {
     await signIn.social({ provider: 'google', callbackURL: '/' })
     setLoading(false)
   }
-  return <main className="flex min-h-screen items-center justify-center bg-slate-100 px-6"><section className="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl"><div className="mb-8 flex items-center gap-3"><div className="flex size-10 items-center justify-center rounded-xl bg-black text-white"><ShieldCheck size={21} /></div><span className="text-xl font-bold text-slate-900">TutorFlow</span></div><h1 className="text-2xl font-bold text-slate-900">Welcome back</h1><p className="mt-2 text-sm leading-6 text-slate-500">Sign in with your Google account to manage tutoring sessions.</p><button onClick={handleGoogleSignIn} disabled={loading} className="mt-8 flex h-12 w-full items-center justify-center gap-3 rounded-xl bg-black text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"><span className="flex size-6 items-center justify-center rounded-full bg-white text-xs font-bold text-black">G</span>{loading ? 'Connecting...' : 'Continue with Google'}</button><p className="mt-5 text-center text-xs text-slate-400">Your Google profile image will appear in the account menu.</p></section></main>
+
+  return (
+    <main className="flex min-h-screen items-center justify-center overflow-hidden bg-[#f4f7ff] px-4 py-8 sm:px-8 lg:px-12">
+      <section className="grid w-full max-w-6xl overflow-hidden rounded-[2rem] bg-white shadow-[0_24px_80px_rgba(49,83,170,0.16)] lg:min-h-[760px] lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="flex flex-col px-7 py-10 sm:px-14 sm:py-14 lg:px-16 lg:py-16">
+          <div className="text-center">
+            <div className="mx-auto flex items-center justify-center gap-3 text-[#0004e4]">
+              <div className="flex size-12 items-center justify-center rounded-2xl bg-[#e9efff]">
+                <GraduationCap size={29} strokeWidth={2.5} />
+              </div>
+              <span className="text-2xl font-bold text-[#0004e4]">Tutor Application</span>
+            </div>
+            <p className="mt-4 text-sm font-medium tracking-[0.18em] text-[#556b9d]">LEARN &nbsp; • &nbsp; GROW &nbsp; • &nbsp; SUCCEED</p>
+          </div>
+          <div className="mx-auto mt-20 w-full max-w-sm text-center sm:mt-24">
+            <h1 className="text-3xl font-bold tracking-tight text-[#111d68]">Welcome Back!</h1>
+            <p className="mt-4 text-base leading-7 text-[#6074a7]">Sign in to continue your learning journey<br className="hidden sm:block" /> and achieve your goals.</p>
+            <button onClick={handleGoogleSignIn} disabled={loading} className="mt-10 flex h-14 w-full items-center justify-center gap-3 rounded-xl border border-[#c7d5f5] bg-white text-sm font-bold text-[#111d68] shadow-[0_5px_14px_rgba(54,89,180,0.08)] transition hover:border-[#0004e4] hover:bg-[#f7f9ff] disabled:cursor-wait disabled:opacity-60">
+              <span className="text-2xl font-bold text-[#4285f4]">G</span>{loading ? 'Connecting...' : 'Continue with Google'}
+            </button>
+            <div className="mt-10 flex items-center gap-4 text-sm text-[#6074a7]"><span className="h-px flex-1 bg-[#dbe3f5]" /><span>or</span><span className="h-px flex-1 bg-[#dbe3f5]" /></div>
+            <div className="mt-10 flex items-start justify-center gap-3 text-left"><ShieldCheck className="mt-0.5 text-[#637aa9]" size={24} /><div><p className="text-sm font-semibold text-[#425887]">Secure login with Google</p><p className="mt-1 text-xs text-[#7184b0]">Your information is safe with us.</p></div></div>
+          </div>
+          <p className="mt-auto pt-14 text-center text-xl font-semibold italic text-[#243a83]">Better Students<br />Brighter Futures</p>
+        </div>
+        <div className="relative hidden min-h-[520px] overflow-hidden bg-[#eef3ff] lg:block">
+          <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-dzcglPzxiZRhHV9f73Cf3MQTX215mG.png" alt="Student learning with books and a laptop" className="absolute inset-0 size-full origin-right scale-[1.65] object-cover object-right" />
+        </div>
+      </section>
+    </main>
+  )
 }
 
 const roleContent: Record<Role, { greeting: string; subtitle: string; role: string }> = {
