@@ -1,4 +1,4 @@
-name: Security Alert Monitor
+name: Security Alert Monitor and Remediation
 
 on:
   push:
@@ -6,23 +6,33 @@ on:
       - main
 
   schedule:
-    # Runs every hour at minute 17.
     - cron: "00 * * * *"
+
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
 
   workflow_dispatch:
 
 permissions:
   contents: read
-  security-events: write
 
 concurrency:
-  group: security-alert-monitor
+  group: security-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: false
 
 jobs:
   monitor:
-    name: Check and request security remediation
-    runs-on: ubuntu-latest
+    name: Check security alerts
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: read
+      security-events: write
 
     steps:
       - name: Validate SYNC_TOKEN
@@ -36,7 +46,7 @@ jobs:
 
           gh api user --jq '"Authenticated as: " + .login'
 
-      - name: Check security alerts and request supported fixes
+      - name: Check alerts and request supported fixes
         id: security
         uses: actions/github-script@v9
         with:
@@ -51,16 +61,13 @@ jobs:
 
             let codeScanningAssigned = 0;
             let codeScanningAlreadyAssigned = 0;
-            let codeScanningAssignmentFailures = 0;
+            let codeScanningUnsupported = 0;
             let retrievalFailures = 0;
 
             const headers = {
               accept: "application/vnd.github+json"
             };
 
-            /*
-             * Retrieve open code-scanning alerts.
-             */
             try {
               codeScanningAlerts = await github.paginate(
                 github.rest.codeScanning.listAlertsForRepo,
@@ -85,10 +92,6 @@ jobs:
               );
             }
 
-            /*
-             * Assign supported code-scanning alerts to
-             * Copilot Agentic Autofix.
-             */
             for (const alert of codeScanningAlerts) {
               const rule =
                 alert.rule?.description ??
@@ -105,11 +108,17 @@ jobs:
                   assignee => assignee.login.toLowerCase()
                 ) ?? [];
 
-              if (
-                existingAssignees.includes(
-                  "copilot-swe-agent[bot]"
-                )
-              ) {
+              const copilotAccounts = [
+                "copilot-swe-agent[bot]",
+                "copilot-swe-agent [bot]"
+              ];
+
+              const alreadyAssigned =
+                existingAssignees.some(
+                  assignee => copilotAccounts.includes(assignee)
+                );
+
+              if (alreadyAssigned) {
                 codeScanningAlreadyAssigned++;
 
                 core.info(
@@ -126,7 +135,7 @@ jobs:
                     owner,
                     repo,
                     alert_number: alert.number,
-                    assignees: ["copilot-swe-agent[bot]"],
+                    assignees: ["copilot-swe-agent [bot]"],
                     headers
                   }
                 );
@@ -134,24 +143,34 @@ jobs:
                 codeScanningAssigned++;
 
                 core.notice(
-                  `Code-scanning alert #${alert.number} was assigned to Copilot Agentic Autofix.`
+                  `Code-scanning alert #${alert.number} was assigned to Copilot.`
                 );
               } catch (error) {
-                codeScanningAssignmentFailures++;
+                /*
+                 * An unsupported alert should be reported but should
+                 * not cause the monitoring workflow to fail.
+                 */
+                if (
+                  error.status === 422 ||
+                  error.message.includes(
+                    "Copilot cannot be assigned"
+                  )
+                ) {
+                  codeScanningUnsupported++;
 
-                core.error(
-                  `Could not assign code-scanning alert #${alert.number}: ${error.message}`
-                );
+                  core.warning(
+                    `Code-scanning alert #${alert.number} does not support Agentic Autofix and requires a manual fix.`
+                  );
+                } else {
+                  codeScanningUnsupported++;
+
+                  core.warning(
+                    `Code-scanning alert #${alert.number} could not be assigned: ${error.message}`
+                  );
+                }
               }
             }
 
-            /*
-             * Retrieve Dependabot alerts.
-             *
-             * Dependabot alerts are not assigned to
-             * copilot-swe-agent[bot]. Dependabot security updates
-             * must create the remediation pull requests.
-             */
             try {
               dependabotAlerts = await github.paginate(
                 "GET /repos/{owner}/{repo}/dependabot/alerts",
@@ -203,7 +222,7 @@ jobs:
                 dependabotNoPatchAvailable++;
 
                 core.warning(
-                  `Dependabot alert #${alert.number}: ${packageName}, severity=${severity}, no patched version is currently reported`
+                  `Dependabot alert #${alert.number}: ${packageName}, severity=${severity}, no patched version currently reported`
                 );
               }
             }
@@ -228,8 +247,8 @@ jobs:
             );
 
             core.setOutput(
-              "code_scanning_assignment_failures",
-              String(codeScanningAssignmentFailures)
+              "code_scanning_unsupported",
+              String(codeScanningUnsupported)
             );
 
             core.setOutput(
@@ -274,7 +293,7 @@ jobs:
           CODE_SCANNING_OPEN: ${{ steps.security.outputs.code_scanning_open }}
           CODE_SCANNING_ASSIGNED: ${{ steps.security.outputs.code_scanning_assigned }}
           CODE_SCANNING_ALREADY_ASSIGNED: ${{ steps.security.outputs.code_scanning_already_assigned }}
-          CODE_SCANNING_ASSIGNMENT_FAILURES: ${{ steps.security.outputs.code_scanning_assignment_failures }}
+          CODE_SCANNING_UNSUPPORTED: ${{ steps.security.outputs.code_scanning_unsupported }}
           DEPENDABOT_OPEN: ${{ steps.security.outputs.dependabot_open }}
           DEPENDABOT_PATCH_AVAILABLE: ${{ steps.security.outputs.dependabot_patch_available }}
           DEPENDABOT_NO_PATCH_AVAILABLE: ${{ steps.security.outputs.dependabot_no_patch_available }}
@@ -288,40 +307,107 @@ jobs:
             echo "- Open code-scanning alerts: ${CODE_SCANNING_OPEN:-0}"
             echo "- Newly assigned to Copilot: ${CODE_SCANNING_ASSIGNED:-0}"
             echo "- Already assigned to Copilot: ${CODE_SCANNING_ALREADY_ASSIGNED:-0}"
-            echo "- Code-scanning assignment failures: ${CODE_SCANNING_ASSIGNMENT_FAILURES:-0}"
+            echo "- Alerts requiring manual correction: ${CODE_SCANNING_UNSUPPORTED:-0}"
             echo "- Open Dependabot alerts: ${DEPENDABOT_OPEN:-0}"
             echo "- Dependabot alerts with patches: ${DEPENDABOT_PATCH_AVAILABLE:-0}"
-            echo "- Dependabot alerts without reported patches: ${DEPENDABOT_NO_PATCH_AVAILABLE:-0}"
-            echo "- Alert retrieval failures: ${RETRIEVAL_FAILURES:-0}"
+            echo "- Dependabot alerts without patches: ${DEPENDABOT_NO_PATCH_AVAILABLE:-0}"
+            echo "- Retrieval failures: ${RETRIEVAL_FAILURES:-0}"
             echo ""
 
             if [ "${TOTAL_OPEN:-0}" = "0" ]; then
               echo "### Result"
-              echo "No Code Scanning or Dependabot alerts remain open."
+              echo "No security alerts remain open."
             else
               echo "### Result"
               echo "${TOTAL_OPEN:-0} security alert(s) remain open."
               echo ""
-              echo "- Supported code-scanning findings were assigned to Copilot Agentic Autofix."
-              echo "- Dependabot security updates must create dependency remediation pull requests."
-              echo "- Merge validated remediation pull requests to resolve the alerts."
+
+              if [ "${CODE_SCANNING_ASSIGNED:-0}" -gt 0 ]; then
+                echo "- ${CODE_SCANNING_ASSIGNED} code-scanning alert(s) were assigned to Copilot."
+              fi
+
+              if [ "${CODE_SCANNING_UNSUPPORTED:-0}" -gt 0 ]; then
+                echo "- ${CODE_SCANNING_UNSUPPORTED} code-scanning alert(s) require manual correction."
+              fi
+
+              if [ "${DEPENDABOT_PATCH_AVAILABLE:-0}" -gt 0 ]; then
+                echo "- ${DEPENDABOT_PATCH_AVAILABLE} Dependabot alert(s) have patched versions."
+              fi
+
+              echo "- Dependabot pull requests will be validated and configured for automatic merging."
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Fail when monitoring could not run
+      - name: Finish monitoring
         if: always()
         env:
           RETRIEVAL_FAILURES: ${{ steps.security.outputs.retrieval_failures }}
-          CODE_SCANNING_ASSIGNMENT_FAILURES: ${{ steps.security.outputs.code_scanning_assignment_failures }}
         run: |
           if [ "${RETRIEVAL_FAILURES:-0}" -gt 0 ]; then
-            echo "::error::One or more security alert APIs could not be queried."
+            echo "::error::One or more security APIs could not be queried."
             exit 1
           fi
 
-          if [ "${CODE_SCANNING_ASSIGNMENT_FAILURES:-0}" -gt 0 ]; then
-            echo "::warning::Some code-scanning alerts could not be assigned to Copilot."
-            echo "Verify that Agentic Autofix is enabled for this repository."
-          fi
-
           echo "Security monitoring completed successfully."
+
+  dependabot-fix:
+    name: Validate and merge Dependabot fix
+    if: |
+      github.event_name == 'pull_request' &&
+      github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Check out Dependabot change
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint
+        run: npm run lint --if-present
+
+      - name: Run tests
+        run: npm test --if-present
+        env:
+          CI: true
+
+      - name: Build application
+        run: npm run build --if-present
+
+      - name: Enable automatic merge
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          gh pr merge "$PR_URL" \
+            --auto \
+            --squash \
+            --delete-branch
+
+      - name: Add remediation summary
+        run: |
+          {
+            echo "## Dependabot remediation"
+            echo ""
+            echo "- Pull request: #${{ github.event.pull_request.number }}"
+            echo "- Dependency installation: passed"
+            echo "- Lint: passed or not configured"
+            echo "- Tests: passed or not configured"
+            echo "- Build: passed or not configured"
+            echo "- Automatic merge: enabled"
+            echo ""
+            echo "GitHub will merge the pull request after all required checks pass."
+          } >> "$GITHUB_STEP_SUMMARY"
