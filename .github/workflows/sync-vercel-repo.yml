@@ -1,4 +1,4 @@
-name: Sync tutor-app-ho
+name: Sync and Delete tutor-app-ho
 
 on:
   workflow_dispatch:
@@ -16,18 +16,26 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Add source repository with auth
+      - name: Add source repository with Token
         run: |
           git remote add tutor-app-ho https://x-access-token:${{ secrets.SYNC_TOKEN }}@github.com/FABRICADO08/tutor-app-ho.git
           git fetch tutor-app-ho
 
-      - name: Replace with tutor-app-ho
+      - name: Sync and Merge Code
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          
-          git reset --hard tutor-app-ho/main
 
-      - name: Push changes
+          git merge tutor-app-ho/main \
+            --allow-unrelated-histories \
+            -m "Merge latest code from tutor-app-ho"
+
+      - name: Push changes to Tutor-App
         run: |
-          git push --force origin main
+          git push origin main
+
+      - name: Delete source repository tutor-app-ho
+        env:
+          GH_TOKEN: ${{ secrets.SYNC_TOKEN }}
+        run: |
+          gh repo delete FABRICADO08/tutor-app-ho --yes
