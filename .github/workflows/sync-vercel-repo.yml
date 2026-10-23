@@ -18,7 +18,7 @@ jobs:
 
       - name: Add source repository
         run: |
-          git remote add tutor-app-ho https://github.com/FABRICADO08/tutor-app-ho.git
+          git remote add tutor-app-ho "https://github.com/FABRICADO08/tutor-app-ho.git"
           git fetch tutor-app-ho
 
       - name: Merge source repository
