@@ -27,14 +27,8 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
-      - name: Verify versions
-        run: |
-          node --version
-          npm --version
-          pnpm --version
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Repair and install dependencies
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build Next.js / OpenNext
         run: pnpm opennextjs-cloudflare build
