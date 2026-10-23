@@ -1,0 +1,35 @@
+name: Sync tutor-app-ho
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Tutor-App
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Add source repository
+        run: |
+          git remote add tutor-app-ho https://github.com/FABRICADO08/tutor-app-ho.git
+          git fetch tutor-app-ho
+
+      - name: Merge source repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git merge tutor-app-ho/main \
+            --allow-unrelated-histories \
+            -m "Merge tutor-app-ho into Tutor-App"
+
+      - name: Push changes
+        run: |
+          git push origin main
