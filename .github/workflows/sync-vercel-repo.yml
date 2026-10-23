@@ -16,20 +16,18 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Add source repository
+      - name: Add source repository with auth
         run: |
-          git remote add tutor-app-ho "https://github.com/FABRICADO08/tutor-app-ho.git"
+          git remote add tutor-app-ho https://x-access-token:${{ secrets.SYNC_TOKEN }}@github.com/FABRICADO08/tutor-app-ho.git
           git fetch tutor-app-ho
 
-      - name: Merge source repository
+      - name: Replace with tutor-app-ho
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git merge tutor-app-ho/main \
-            --allow-unrelated-histories \
-            -m "Merge tutor-app-ho into Tutor-App"
+          
+          git reset --hard tutor-app-ho/main
 
       - name: Push changes
         run: |
-          git push origin main
+          git push --force origin main
