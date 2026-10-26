@@ -3,8 +3,8 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'TutorFlow | Tutor Management Platform',
-  description: 'Manage tutors, students, bookings, assignments, and payments from one education workspace.',
+  title: 'Tutor | Your Personal Learning Hub',
+  description: 'Connect with expert tutors, book flexible sessions, and track your learning progress.',
   generator: 'v0.app',
   icons: {
     icon: [
@@ -26,11 +26,8 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  colorScheme: 'light dark',
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: 'white' },
-    { media: '(prefers-color-scheme: dark)', color: 'black' },
-  ],
+  colorScheme: 'light',
+  themeColor: '#f7f9ff',
 }
 
 export default function RootLayout({
