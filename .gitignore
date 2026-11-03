@@ -15,3 +15,7 @@ node_modules
 .next/
 .open-next/
 .DS_Store
+
+# This project uses pnpm; do not commit other package managers' lockfiles
+package-lock.json
+yarn.lock
