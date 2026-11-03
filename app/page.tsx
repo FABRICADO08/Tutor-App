@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import Image from 'next/image'
-import { Activity, BookOpen, CalendarDays, Check, ChevronDown, CircleDollarSign, Clock3, GraduationCap, Heart, LayoutDashboard, LogOut, Menu, MessageSquare, Search, Settings, ShieldCheck, TrendingUp, Users, X } from 'lucide-react'
+import { Activity, BookOpen, CalendarDays, Check, ChevronDown, CircleDollarSign, GraduationCap, Heart, LayoutDashboard, LogOut, Menu, MessageSquare, Search, Settings, ShieldCheck, TrendingUp, Users, X } from 'lucide-react'
 import { signIn, signOut, useSession } from '@/lib/auth-client'
 
 type Role = 'Admin' | 'Educator' | 'Student'
