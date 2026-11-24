@@ -34,7 +34,7 @@
     "postcss": "^8.5.33",
     "tailwindcss": "^4.3.5",
     "typescript": "7.0.2",
-    "wrangler": "^4.163.0"
+    "wrangler": "^4.166.0"
   },
   "pnpm": {
     "overrides": {
